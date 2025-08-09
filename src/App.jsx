@@ -29,6 +29,8 @@ const initialNodes = [
 
 const initialEdges = [];
 
+const STORAGE_KEY = 'mindmap-state';
+
 const dagreGraph = new dagre.graphlib.Graph();
 dagreGraph.setDefaultEdgeLabel(() => ({}));
 
@@ -252,6 +254,23 @@ function App() {
     setEditingNodeId(null);
   }, [setEditingNodeId]);
 
+  const onSave = useCallback(() => {
+    const state = { nodes, edges };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }, [nodes, edges]);
+
+  const onLoad = useCallback(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return;
+    try {
+      const { nodes: savedNodes, edges: savedEdges } = JSON.parse(stored);
+      setNodes(savedNodes || []);
+      setEdges(savedEdges || []);
+    } catch (e) {
+      console.error('Failed to load mindmap', e);
+    }
+  }, [setNodes, setEdges]);
+
   return (
     <div
       style={{ width: '100vw', height: '100vh' }}
@@ -272,6 +291,8 @@ function App() {
         <button onClick={() => onLayout('TB')}>Layout Top-Bottom</button>
         <button onClick={() => onLayout('LR')}>Layout Left-Right</button>
         <button onClick={onFitView}>Fit View</button>
+        <button onClick={onSave}>Save Map</button>
+        <button onClick={onLoad}>Load Map</button>
       </div>
       <div
         style={{ width: '100%', height: '100%' }}
